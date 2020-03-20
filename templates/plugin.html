@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+   <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h2 class="sub-header">插件管理</h2>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>插件编号</th>
+                  <th>插件所属网站</th>
+                  <th>插件名称</th>
+                  <th>插件状态</th>
+                  <th>插件功能</th>
+                  <th>插件操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for plugin_msg in plugin_msg_list %}
+                 <tr>
+                   <td>&nbsp;{{ plugin_msg.plugin_num }}</td>
+                   <td>&nbsp;{{ plugin_msg.plugin_belong_net }}</td>
+                   <td id="plugin_name-{{ forloop.counter }}">&nbsp;{{ plugin_msg.plugin_name }}</td>
+                   <td id="status-{{ forloop.counter }}">
+                       &nbsp;{{ plugin_msg.plugin_status }}
+                   </td>
+                   <td>&nbsp;{{ plugin_msg.plugin_produce }}</td>
+                   <td>
+                       <a href='#' id="run" class="run-{{ forloop.counter }}" value="{{ forloop.counter }}">run</a>
+                       <a href='#' id="stop" class="stop-{{ forloop.counter }}" value="{{ forloop.counter }}">stop</a>
+                   </td>
+                 </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+   </div>
+</body>
+</html>

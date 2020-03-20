@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../../favicon.ico">
+
+    <title>海螺管理</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/static/bootstrap/css/dashboard.css" rel="stylesheet">
+
+          <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/static/bootstrap/js/jquery.min.js"></script>
+    <!--    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>-->
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" style="background-color: #dddddd">
+      <div class="container-fluid">
+        <div class="navbar-header">
+         <img src="/static/images/hailuo.png" alt="#" class="img-rounded img-responsive center-block" style="padding-top: 5px">
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <h3 style="color: #9d9d9d ">conch management</h3>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+                <li><a id="crawler" href="#"style="text-decoration:none;color:#888888 ">插件管理系统</a></li>
+                <li><a id="data" href="#" style="text-decoration:none;color: #888888 ">数据管理系统</a></li>
+          </ul>
+          <footer class="footer navbar-fixed-bottom" id="login_out" style="padding-bottom: 50px;padding-left: 30px;width: 60px"><a href='{% url "signin:login_out" %}' class="glyphicon glyphicon-log-out" aria-hidden="true" style="text-decoration:none;color: #888888 "} ></a></footer>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="p_html">
+    </div>
+
+
+    <script type="text/javascript">
+
+
+
+        $.page_split = function(page_num,html_sign){
+                        var before = '<li><a href="#" aria-label="Previous" id="previous" value="0" class='+html_sign+'><span aria-hidden="true">&laquo;</span></a></li>'
+                        var next = '<li><a href="#" aria-label="Next" id="next" value="1" class='+html_sign+'><span aria-hidden="true">&raquo;</span></a></li>'
+                        if(page_num>=5){
+                            var mid = '<li><a href="#" id="page_1" class="page">1</a></li>' +
+                                      '<li><a href="#" id="page_2" class="page">2</a></li>' +
+                                      '<li><a href="#" id="page_3" class="page">3</a></li>' +
+                                      '<li><a href="#" id="page_4" class="page">4</a></li>' +
+                                      '<li><a href="#" id="page_5" class="page">5</a></li>'
+                            $('.pagination').html(before+mid+next)
+                        }
+                        else {
+                            var mid = ''
+                            for(var i=1;i<page_num+1;i++){
+                                var c = String(i)
+                                mid += '<li><a href="#" id="page_'+c+'" class="page" >'+c+'</a></li>'
+                            }
+                            $('.pagination').html(before+mid+next)
+                        }
+        }
+
+        $(document).ready(function(){
+
+            $("#crawler").click(function(){
+                $.ajax({
+                    url:'{% url "manager:plugin" %}',
+                    type:'GET',
+                    success:function (msg) {
+                        $('#p_html').html(msg)
+                    }
+                })
+            })
+             $('#p_html').on('click','#run',function(){
+                var fh=$(this)
+                var index = fh.attr('value')
+                var plugin_ele_name = '#plugin_name-'+index
+                var plugin_name = $(plugin_ele_name).html().replace('&nbsp;','')
+                $.ajax({
+                url:'{% url "manager:run" %}',
+                type:'GET',
+                data:{'plugin_name':plugin_name},
+                success:function (data) {
+                    var status = data['data']
+                    if(status==1){
+                        console.log(index)
+                        var element_name = '#status-'+index
+                        $(element_name).html('插件已运行')
+                        fh.attr('id','run_c')
+                        var stop_name = '.stop-'+index
+                        $(stop_name).attr('id','stop')
+                    }
+                    if(status==0){
+                        var element_name = '#status-'+index
+                        $(element_name).html('插件启动失败')
+                        console.log(element_name)
+                    }
+                    if(status==-1){
+                        $('#p_html').html('插件出现异常')
+                    }
+
+                }
+            })
+        })
+
+         $('#p_html').on('click','#stop',function(){
+            var fh =$(this)
+            var index = fh.attr('value')
+            var plugin_ele_name = '#plugin_name-'+index
+            var plugin_name = $(plugin_ele_name).html().replace('&nbsp;','')
+            console.log(plugin_name)
+            $.ajax({
+                url:'{% url "manager:stop" %}',
+                type:'GET',
+                data:{'plugin_name':plugin_name},
+                success:function (data) {
+                    var status = data['data']
+                    if(status ==1){
+                        var index = fh.attr('value')
+                        console.log(index)
+                        var element_name = '#status-'+index
+                        $(element_name).html('插件已停止')
+                        fh.attr('id','stop_c')
+                        var stop_name = '.run-'+index
+                        $(stop_name).attr('id','run')
+                    }
+                    if(status == 0){
+                        var index = fh.attr('value')
+                        var element_name = '#status-'+index
+                        $(element_name).html('插件停止失败')
+                        console.log(element_name)
+                    }
+                    if(status==-1){
+                        $('#p_html').html('插件出现异常')
+                    }
+                }
+            })
+        })
+        })
+        $(document).ready(function(){
+
+            var area_district = ''
+            var area = ''
+            var district =''
+            var fy_data = ''
+            var page_num = 1
+            var page_size = 15
+            var ht_list =[]
+            var bm_list = []
+            var bm_page = 1
+            $("#data").click(function(){
+                $.ajax({
+                    url:'{% url "manager:data" %}',
+                    type:'GET',
+                    success:function (msg) {
+                        var start = msg.search('<tbody id="tr_insert_position" >')+'<tbody id="tr_insert_position" >'.length
+                        var end = msg.search('</tbody>')
+                        var ht_ret = msg.substring(0,start)+msg.substring(end,msg.length)
+                        var data_ret = msg.substring(start,end)
+                        var data_t = data_ret.replace(/<\/tr>/g,"</tr>|").split('|')
+                        var count = 0
+                        var bm = ''
+                        for(var i=0;i<data_t.length;i++){
+
+                            if(count==page_size){
+                                bm_list.push(bm)
+                                count=0
+                                bm=''
+                            }
+                            bm+=data_t[i]
+                            count+=1
+                        }
+                        if(bm!=''){
+                            bm_list.push(bm)
+                        }
+                        $('#p_html').html(ht_ret)
+                        $('#th_insert_position').html('<tr><th>市</th> <th>区数量</th> <th>街道数</th> <th>房源数量</th></tr>')
+                        $('#tr_insert_position').html(bm_list[0])
+                        bm_page = bm_list.length
+                        $.page_split(bm_page,'bm')
+
+                    }
+                })
+            })
+
+            $('#p_html').on('click','#dropdownMenu1',function(){
+
+                $.ajax({
+                    url:'{% url "manager:area_district" %}',
+                    type:'GET',
+                    success:function (msg) {
+                        var ah = ''
+                        console.log(msg)
+                        area_district = msg['data']
+                        for( var i=0; i<area_district.length; i++){
+                            var area_t = area_district[i]['area']
+                            ah += '<li><a href="#" class="li_area" value='+area_t+'>'+area_t+'</a></li>'
+                        }
+                        $('#btn_m_1').html(ah)
+
+
+                    }
+                })
+            })
+            $('#p_html').on('click','#dropdownMenu2',function(){
+                    var ah = ''
+                    for( var i=0; i<area_district.length; i++){
+                        if(area_district[i]['area'] == area){
+                            var district_box = area_district[i]['district_box']
+                            var district_t = ''
+                            for(var j=0;j<district_box.length;j++){
+                                 district_t = district_box[j]['district']
+                                ah += '<li><a href="#" class="li_district" value='+district_t+'>'+district_t+'</a></li>'
+                            }
+                            $('#btn_m_2').html(ah)
+                            break
+                        }
+                    }
+                })
+
+            $('#p_html').on('click','.li_area',function(){
+                 area = $(this).attr('value')
+                 $('#dropdownMenu1').html(area+'<span class="caret"></span>')
+                 $('#dropdownMenu2').html('请选择'+'<span class="caret">')
+            })
+            $('#p_html').on('click','.li_district',function(){
+
+                district = $(this).attr('value')
+                $('#dropdownMenu2').html(district+'<span class="caret">')
+
+            })
+            $('#p_html').on('click','#search',function(){
+                ht_list=[]
+                $.ajax({
+                    url:'{% url "manager:search" %}',
+                    type:'GET',
+                    data:{'area':area,'district':district},
+                    success:function (msg) {
+
+                        fy_data = msg.data
+                        var road = ''
+                        var html_box = ''
+                        var id = ''
+                        var data_l =''
+                        var ht =''
+                        var count = 0
+                        for(var i=0;i< fy_data.length;i++){
+                            road = fy_data[i]['road']
+                            html_box = fy_data[i]['html_box']
+
+
+                            for(var j=0;j<html_box.length;j++){
+
+                                if(count==page_size){
+                                    ht_list.push(ht)
+                                    ht =''
+                                    count=0
+                                }
+                                id = html_box[j]['id']
+                                data_l = html_box[j].data
+                                ht += '<tr>'+
+                                        '<td>'+id+'</td>'+
+                                        '<td>'+road+'</td>'+
+                                        '<td>'+data_l['area']+'</td>'+
+                                        '<td>'+data_l['price']+'</td>'+
+                                        '<td>'+data_l['name']+'</td>'+
+                                        '<td>'+data_l['phone']+'</td>'+
+                                        '<td><span title="房源信息" data-html="true"' +
+                                        'data-container="body" data-toggle="popover" data-placement="left" ' +
+                                        'key = "'+id+'"'+
+                                        'id = "detail_fy" value='+road+'>'+
+                                        'more'+'</span></td>'
+                                    +'</tr>'
+                                count+=1
+
+                            }
+                        }
+                        if(ht!=''){
+                            ht_list.push(ht)
+                        }
+                        $('#th_insert_position').html('<tr><th>ID</th><th>区/路</th><th>面积</th><th>房屋价格</th><th>姓名</th><th>联系方式</th><th>更多</th></tr>')
+                        $('#tr_insert_position').html(ht_list[0])
+                        page_num = ht_list.length
+                        $.page_split(page_num,'ht')
+                    }
+                })
+                $('#current_page').html('1')
+            })
+            $('#p_html').on('click','#previous',function () {
+                var value = parseInt($(this).attr('value'))
+                var cl = $(this).attr('class')
+                if(cl=='ht'&& value>0){
+                    $('#tr_insert_position').html(ht_list[value-1])
+                    $('#next').attr('value',value)
+                    $('#previous').attr('value',value-1)
+                    $('#current_page').html(value)
+                }
+                if(cl=='bm'&& value>0){
+                    $('#tr_insert_position').html(bm_list[value-1])
+                    $('#next').attr('value',value)
+                    $('#previous').attr('value',value-1)
+                    $('#current_page').html(value)
+                }
+
+                var page_number_min = parseInt($('#page_1').html())
+                if(value<page_number_min){
+                    $('#page_1').html(value+1)
+                    $('#page_2').html(value+2)
+                    $('#page_3').html(value+3)
+                    $('#page_4').html(value+4)
+                    $('#page_5').html(value+5)
+                }
+
+            })
+            $('#p_html').on('click','.page',function () {
+                var value = parseInt($(this).html())
+                var cl = $('#previous').attr('class')
+                console.log(value,cl)
+                if(cl=='ht'){
+                    $('#tr_insert_position').html(ht_list[value-1])
+                }
+                if(cl=='bm'){
+                    $('#tr_insert_position').html(bm_list[value-1])
+                }
+                $('#next').attr('value',value+1)
+                $('#previous').attr('value',value)
+                $('#current_page').html(value)
+            })
+            $('#p_html').on('click','#next',function(){
+                var value = parseInt($(this).attr('value'))
+                var cl = $(this).attr('class')
+                var page_number_max = parseInt($('#page_5').html())
+                if(cl=='ht'&& value<page_num){
+                    $('#tr_insert_position').html(ht_list[value])
+                    $('#next').attr('value',value+1)
+                    $('#previous').attr('value',value)
+                    $('#current_page').html(value+1)
+                }
+                if(cl=='bm'&& value<bm_page){
+                    $('#tr_insert_position').html(bm_list[value])
+                    $('#next').attr('value',value+1)
+                    $('#previous').attr('value',value)
+                    $('#current_page').html(value+1)
+
+                }
+                if(value>page_number_max){
+                    $('#page_1').html(value-4)
+                    $('#page_2').html(value-3)
+                    $('#page_3').html(value-2)
+                    $('#page_4').html(value-1)
+                    $('#page_5').html(value)
+                }
+
+            })
+            $('#p_html').on('mouseover','#detail_fy',function(){
+                var road = $(this).attr('value')
+                var key = $(this).attr('key')
+                console.log(fy_data)
+                console.log(key)
+                var break_point = 0
+                for(var i=0;i<fy_data.length;i++){
+                    if(break_point==1){
+                        break
+                    }
+                    if(fy_data[i].road==road){
+                        var html_box = fy_data[i].html_box
+                        for(var j=0;j<html_box.length;j++){
+                            if(html_box[j].id==key){
+                                var fy_detail = html_box[j].data
+                                try {
+                                   var pic_crawl_status = fy_detail.pic_crawl_stutas
+                                } catch(err) {
+                                    var pic_crawl_status = '本房源无图片'
+                                    }
+
+                                var img_box = fy_detail.img_box
+                                var images_link=''
+                                if(img_box instanceof Array && img_box.length!=0){
+                                    for(var k=0;k<img_box.length;k++){
+                                        images_link += img_box[i]+'\n'+'&nbsp'.repeat(16)
+                                    }
+                                }
+
+                                var data_content = '<ul>'+
+                                                        '<li>'+'房源标题:' + fy_detail.title +'</li>'+
+                                                        '<li>'+'发布日期:' + fy_detail.pubdate +'</li>'+
+                                                        '<li>'+'主图链接:' + fy_detail.img_url +'</li>'+
+                                                        '<li>'+'主页链接:' + fy_detail.header_link +'</li>'+
+                                                        '<li>'+'房源所属:' + fy_detail.source +'</li>'+
+                                                        '<li>'+'   面积:' + fy_detail.area +'</li>'+
+                                                        '<li>'+'   价格:' + fy_detail.price +'</li>'+
+                                                        '<li>'+' 联系人:' + fy_detail.name +'</li>'+
+                                                        '<li>'+'  手机:' + fy_detail.phone +'</li>'+
+                                                        '<li>'+'详细地址:' + fy_detail.address +'</li>'+
+                                                        '<li>'+'装饰情况:' + fy_detail.decoration_situation +'</li>'+
+                                                        '<li>'+'    楼层:' + fy_detail.storey +'</li>'+
+                                                        '<li>'+'   押金:' + fy_detail.deposit +'</li>'+
+                                                        '<li>'+'   布局:' + fy_detail.layout +'</li>'+
+                                                        '<li>'+'   朝向:' + fy_detail.orientation +'</li>'+
+                                                        '<li>'+'   小区:' + fy_detail.housing_estate +'</li>'+
+                                                        '<li>'+'详情介绍:' + fy_detail.view_box +'</li>'+
+                                                        '<li>'+'图片链接:' + images_link +'</li>'+
+                                                        '<li>'+'抓取状态:' + fy_detail.status +'</li>'+
+                                                        '<li>'+'图片抓取状态:'+ pic_crawl_status+'</li>'
+                                                    +'</ul>'
+
+                                break_point=1
+                                break
+
+                            }
+                        }
+
+                    }
+                }
+                $(this).attr('data-content',data_content)
+                $(this).popover('show');
+            })
+            $('#p_html').on('mouseout','#detail_fy',function(){
+
+                $(this).popover('hide');
+            })
+
+
+        })
+    </script>
+  </body>
+</html>
